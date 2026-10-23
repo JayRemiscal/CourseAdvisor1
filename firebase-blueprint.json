@@ -1,0 +1,175 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Student user profile and academic preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Student email address" },
+        "displayName": { "type": "string", "description": "Full name" },
+        "photoURL": { "type": "string", "description": "Avatar URL" },
+        "degreeProgram": { "type": "string", "description": "Degree program name" },
+        "currentYearLevel": { "type": "number", "description": "Current college year level (1-5)" },
+        "startingTerm": { "type": "string", "description": "Starting semester (e.g. 1st Semester)" },
+        "startingAcademicYear": { "type": "string", "description": "Academic year (e.g. 2024–2025)" },
+        "targetCreditsPerSemester": { "type": "number", "description": "Target credits per term" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of account creation" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Curriculum course record in catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique course identifier" },
+        "code": { "type": "string", "description": "Course code (e.g., CS101, ENS001)" },
+        "title": { "type": "string", "description": "Course title" },
+        "description": { "type": "string", "description": "Course catalog description" },
+        "credits": { "type": "number", "description": "Credit units" },
+        "yearLevel": { "type": "number", "description": "Recommended academic year level (1-5)" },
+        "recommendedSemester": { "type": "string", "description": "Recommended semester term" },
+        "difficultyRating": { "type": "number", "description": "Difficulty rating on 1-10 scale" },
+        "prerequisites": { "type": "array", "description": "List of prerequisite course codes" },
+        "category": { "type": "string", "description": "Curriculum category" },
+        "status": { "type": "string", "description": "Base course status" },
+        "isDemoCourse": { "type": "boolean", "description": "Whether this is demonstration sample data" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "code", "title", "credits", "category"]
+    },
+    "AcademicProgress": {
+      "title": "AcademicProgress",
+      "description": "Individual course grade and completion record for a student",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Record unique ID" },
+        "userId": { "type": "string", "description": "Owner student UID" },
+        "courseCode": { "type": "string", "description": "Course code" },
+        "courseTitle": { "type": "string", "description": "Course title" },
+        "credits": { "type": "number", "description": "Credit units earned" },
+        "grade": { "type": "string", "description": "Letter grade (A, B+, In Progress, etc.)" },
+        "termCompleted": { "type": "string", "description": "Term completed (e.g., Year 1 Term 1)" },
+        "academicYear": { "type": "string", "description": "Academic year completed" },
+        "status": { "type": "string", "description": "Completed | In Progress | Planned" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["userId", "courseCode", "status"]
+    },
+    "AcademicPlan": {
+      "title": "AcademicPlan",
+      "description": "Multi-semester degree roadmap created by student",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Plan unique ID" },
+        "userId": { "type": "string", "description": "Owner student UID" },
+        "name": { "type": "string", "description": "Plan name" },
+        "description": { "type": "string", "description": "Plan description" },
+        "degreeProgram": { "type": "string", "description": "Target degree program" },
+        "startingAcademicYear": { "type": "string", "description": "Starting academic year" },
+        "targetCredits": { "type": "number", "description": "Target credits per semester" },
+        "isPrimary": { "type": "boolean", "description": "Whether this is the primary active plan" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "userId", "name"]
+    },
+    "PlannedSemester": {
+      "title": "PlannedSemester",
+      "description": "A specific semester column within an academic plan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Semester ID" },
+        "planId": { "type": "string", "description": "Parent plan ID" },
+        "userId": { "type": "string", "description": "Owner student UID" },
+        "name": { "type": "string", "description": "Semester name (e.g. Year 2 - 1st Semester)" },
+        "term": { "type": "string", "description": "Term type (1st Semester, 2nd Semester, Summer)" },
+        "yearNumber": { "type": "number", "description": "Year number (1-5)" },
+        "academicYear": { "type": "string", "description": "Academic year string" },
+        "courseIds": { "type": "array", "description": "Ordered array of course IDs assigned to this term" },
+        "isCompleted": { "type": "boolean", "description": "Whether semester has finished" },
+        "isCurrent": { "type": "boolean", "description": "Whether this is current active semester" },
+        "orderIndex": { "type": "number", "description": "Sequential display order" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "planId", "userId", "name", "courseIds"]
+    },
+    "ConfidenceRating": {
+      "title": "ConfidenceRating",
+      "description": "Student self-assessment confidence rating for Mamdani FIS",
+      "type": "object",
+      "properties": {
+        "courseCode": { "type": "string", "description": "Target course code" },
+        "userId": { "type": "string", "description": "Owner student UID" },
+        "confidence": { "type": "number", "description": "Rating from 1 to 10" },
+        "isSample": { "type": "boolean", "description": "False if custom entered by student" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["courseCode", "userId", "confidence"]
+    },
+    "WorkloadAssessment": {
+      "title": "WorkloadAssessment",
+      "description": "Retained Mamdani Fuzzy Inference System evaluation result for a term",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Assessment ID" },
+        "userId": { "type": "string", "description": "Owner student UID" },
+        "semesterId": { "type": "string", "description": "Semester evaluated" },
+        "semesterName": { "type": "string", "description": "Semester title" },
+        "totalCredits": { "type": "number", "description": "Total credits in semester" },
+        "stressScore": { "type": "number", "description": "Centroid crisp stress score (0-100)" },
+        "workloadCategory": { "type": "string", "description": "Low | Moderate | High" },
+        "creditLoadStatus": { "type": "string", "description": "Underload | Recommended | Overload" },
+        "generatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "userId", "semesterId", "stressScore"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrator record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Admin UID" },
+        "email": { "type": "string", "description": "Admin email" },
+        "grantedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["uid"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Student user profile and academic preferences"
+    },
+    "/users/{userId}/academicProgress/{recordId}": {
+      "schema": "AcademicProgress",
+      "description": "Student completed/in-progress course grade records"
+    },
+    "/users/{userId}/academicPlans/{planId}": {
+      "schema": "AcademicPlan",
+      "description": "Student 4-year degree schedule plans"
+    },
+    "/users/{userId}/academicPlans/{planId}/semesters/{semesterId}": {
+      "schema": "PlannedSemester",
+      "description": "Semesters within an academic plan containing course assignments"
+    },
+    "/users/{userId}/confidenceRatings/{courseCode}": {
+      "schema": "ConfidenceRating",
+      "description": "Student self-assessment confidence ratings (1-10) for Mamdani FIS"
+    },
+    "/users/{userId}/workloadAssessments/{assessmentId}": {
+      "schema": "WorkloadAssessment",
+      "description": "Calculated Mamdani fuzzy workload stress index results for semesters"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Institutional degree catalog course definitions"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "System administrator directory for role-based access control"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "CourseAdvisor – Intelligent Academic Planner",
+  "description": "Intelligent college academic journey planner for degree requirements, course prerequisites, multi-semester scheduling, workload analysis, and academic progress tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
