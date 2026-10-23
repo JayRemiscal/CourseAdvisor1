@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AcademicProvider, useAcademic } from './context/AcademicContext';
 import { AuthProvider } from './context/AuthContext';
 import { Header } from './components/layout/Header';
@@ -20,14 +20,86 @@ import { Course } from './types/academic';
 
 import { CheckCircle2, X } from 'lucide-react';
 
+const PAGE_TO_HASH: Record<NavPageId, string> = {
+  'Dashboard': 'dashboard',
+  'My Academic Progress': 'progress',
+  'Course Catalog': 'catalog',
+  'Prerequisite Explorer': 'prerequisites',
+  'Academic Planner': 'planner',
+  'Workload Assessment': 'workload',
+  'My Saved Plans': 'plans',
+  'Settings': 'settings'
+};
+
+const HASH_TO_PAGE: Record<string, NavPageId> = {
+  dashboard: 'Dashboard',
+  progress: 'My Academic Progress',
+  catalog: 'Course Catalog',
+  prerequisites: 'Prerequisite Explorer',
+  planner: 'Academic Planner',
+  workload: 'Workload Assessment',
+  plans: 'My Saved Plans',
+  settings: 'Settings'
+};
+
+const getInitialPage = (): NavPageId => {
+  if (typeof window !== 'undefined') {
+    const rawHash = window.location.hash.replace(/^#\/?/, '').toLowerCase().trim();
+    if (rawHash && HASH_TO_PAGE[rawHash]) {
+      return HASH_TO_PAGE[rawHash];
+    }
+    try {
+      const stored = localStorage.getItem('courseadvisor_active_page');
+      if (stored && Object.values(HASH_TO_PAGE).includes(stored as NavPageId)) {
+        return stored as NavPageId;
+      }
+    } catch {}
+  }
+  return 'Dashboard';
+};
+
 function MainApp() {
-  const [currentPage, setCurrentPage] = useState<NavPageId>('Dashboard');
+  const [currentPage, setCurrentPage] = useState<NavPageId>(getInitialPage);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCourseModalId, setSelectedCourseModalId] = useState<string | null>(null);
   const [isProspectusModalOpen, setIsProspectusModalOpen] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { toasts, removeToast } = useAcademic();
+
+  const handleNavigate = (page: NavPageId) => {
+    setCurrentPage(page);
+    try {
+      localStorage.setItem('courseadvisor_active_page', page);
+      const hash = PAGE_TO_HASH[page];
+      if (hash && window.location.hash !== `#/${hash}`) {
+        window.history.pushState(null, '', `#/${hash}`);
+      }
+    } catch {}
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Synchronize hash on initial load and handle browser back/forward buttons
+  useEffect(() => {
+    const hash = PAGE_TO_HASH[currentPage];
+    if (hash && window.location.hash !== `#/${hash}`) {
+      window.history.replaceState(null, '', `#/${hash}`);
+    }
+
+    const handleHashChange = () => {
+      const raw = window.location.hash.replace(/^#\/?/, '').toLowerCase().trim();
+      if (raw && HASH_TO_PAGE[raw]) {
+        const targetPage = HASH_TO_PAGE[raw];
+        setCurrentPage(targetPage);
+        try {
+          localStorage.setItem('courseadvisor_active_page', targetPage);
+        } catch {}
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const selectedCourse = selectedCourseModalId 
     ? (COURSE_BY_ID_MAP.get(selectedCourseModalId) || COURSES_DATA.find(c => c.code === selectedCourseModalId) || null)
@@ -48,8 +120,7 @@ function MainApp() {
 
   const handleExplorePrerequisites = (courseCode: string) => {
     setPrereqExplorerInitialCode(courseCode);
-    setCurrentPage('Prerequisite Explorer');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    handleNavigate('Prerequisite Explorer');
   };
 
   const handleOpenCourse = (courseId: string) => {
@@ -66,10 +137,7 @@ function MainApp() {
       {/* Sidebar Navigation */}
       <Sidebar
         currentPage={currentPage}
-        onSelectPage={(page) => {
-          setCurrentPage(page);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onSelectPage={handleNavigate}
         isOpen={isSidebarOpen}
         onCloseMobile={() => setIsSidebarOpen(false)}
       />
@@ -83,10 +151,7 @@ function MainApp() {
           currentPageSubtitle={pageSubtitles[currentPage]}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
-          onNavigate={(page) => {
-            setCurrentPage(page as NavPageId);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onNavigate={(page) => handleNavigate(page as NavPageId)}
           onOpenProspectus={() => setIsProspectusModalOpen(true)}
           onOpenSignIn={() => setIsSignInModalOpen(true)}
           onOpenProfile={() => setIsProfileModalOpen(true)}
@@ -96,10 +161,7 @@ function MainApp() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {currentPage === 'Dashboard' && (
             <DashboardPage
-              onNavigate={(page) => {
-                setCurrentPage(page);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigate={handleNavigate}
               onOpenCourse={handleOpenCourse}
               onOpenProspectus={() => setIsProspectusModalOpen(true)}
             />
@@ -125,20 +187,14 @@ function MainApp() {
             <PrerequisiteExplorerPage 
               onOpenCourse={handleOpenCourse}
               initialCourseCode={prereqExplorerInitialCode}
-              onNavigate={(page) => {
-                setCurrentPage(page as NavPageId);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigate={(page) => handleNavigate(page as NavPageId)}
             />
           )}
 
           {currentPage === 'Academic Planner' && (
             <AcademicPlannerPage 
               onOpenCourse={handleOpenCourse} 
-              onNavigateToWorkload={() => {
-                setCurrentPage('Workload Assessment');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigateToWorkload={() => handleNavigate('Workload Assessment')}
             />
           )}
 
@@ -148,10 +204,7 @@ function MainApp() {
 
           {currentPage === 'My Saved Plans' && (
             <SavedPlansPage 
-              onNavigate={(page) => {
-                setCurrentPage(page as NavPageId);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigate={(page) => handleNavigate(page as NavPageId)}
             />
           )}
 
@@ -189,7 +242,7 @@ function MainApp() {
         onClose={() => setIsProfileModalOpen(false)}
         onOpenTestPanel={() => {
           setIsProfileModalOpen(false);
-          setCurrentPage('Settings');
+          handleNavigate('Settings');
         }}
       />
 
